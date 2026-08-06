@@ -1,0 +1,101 @@
+# ---------------------------------------------------------------------------
+# Этапы 1, 2, 3, 5, 9: кластер из 3 нод в режиме KRaft.
+# Каждая нода combined (broker + controller), кворум контроллеров = 3.
+# Позволяет отрабатывать RF=3, min.insync.replicas=2, падение брокера,
+# переизбрание лидера партиции, реассайн реплик.
+#
+# Порты для хоста: 19092, 29092, 39092
+# Bootstrap с хоста: localhost:19092,localhost:29092,localhost:39092
+#
+# Запуск: docker compose -f docker/three-broker.yml up -d
+# ---------------------------------------------------------------------------
+name: kafka-learn-cluster
+
+x-kafka-common: &kafka-common
+  image: apache/kafka:4.0.0
+  environment: &kafka-common-env
+    KAFKA_PROCESS_ROLES: broker,controller
+    KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka-1:9093,2@kafka-2:9093,3@kafka-3:9093
+    KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+    KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+    KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+    # Внутренние топики реплицируем по-настоящему
+    KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 3
+    KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 3
+    KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 2
+    KAFKA_SHARE_COORDINATOR_STATE_TOPIC_REPLICATION_FACTOR: 3
+    KAFKA_SHARE_COORDINATOR_STATE_TOPIC_MIN_ISR: 2
+    KAFKA_DEFAULT_REPLICATION_FACTOR: 3
+    KAFKA_MIN_INSYNC_REPLICAS: 2
+    KAFKA_NUM_PARTITIONS: 3
+    KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+    KAFKA_AUTO_CREATE_TOPICS_ENABLE: "false"
+    KAFKA_LOG_DIRS: /var/lib/kafka/data
+    CLUSTER_ID: 5L6g3nShT-eMCtK--X86sw
+  healthcheck:
+    test: ["CMD-SHELL", "/opt/kafka/bin/kafka-broker-api-versions.sh --bootstrap-server localhost:9092 >/dev/null 2>&1"]
+    interval: 10s
+    timeout: 10s
+    retries: 15
+    start_period: 25s
+
+services:
+  kafka-1:
+    <<: *kafka-common
+    container_name: kafka-1
+    hostname: kafka-1
+    ports:
+      - "19092:9092"
+    environment:
+      <<: *kafka-common-env
+      KAFKA_NODE_ID: 1
+      KAFKA_LISTENERS: PLAINTEXT://kafka-1:19093,PLAINTEXT_HOST://0.0.0.0:9092,CONTROLLER://kafka-1:9093
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka-1:19093,PLAINTEXT_HOST://localhost:19092
+    volumes:
+      - kafka-1-data:/var/lib/kafka/data
+
+  kafka-2:
+    <<: *kafka-common
+    container_name: kafka-2
+    hostname: kafka-2
+    ports:
+      - "29092:9092"
+    environment:
+      <<: *kafka-common-env
+      KAFKA_NODE_ID: 2
+      KAFKA_LISTENERS: PLAINTEXT://kafka-2:19093,PLAINTEXT_HOST://0.0.0.0:9092,CONTROLLER://kafka-2:9093
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka-2:19093,PLAINTEXT_HOST://localhost:29092
+    volumes:
+      - kafka-2-data:/var/lib/kafka/data
+
+  kafka-3:
+    <<: *kafka-common
+    container_name: kafka-3
+    hostname: kafka-3
+    ports:
+      - "39092:9092"
+    environment:
+      <<: *kafka-common-env
+      KAFKA_NODE_ID: 3
+      KAFKA_LISTENERS: PLAINTEXT://kafka-3:19093,PLAINTEXT_HOST://0.0.0.0:9092,CONTROLLER://kafka-3:9093
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka-3:19093,PLAINTEXT_HOST://localhost:39092
+    volumes:
+      - kafka-3-data:/var/lib/kafka/data
+
+  kafka-ui:
+    image: provectuslabs/kafka-ui:latest
+    container_name: kafka-ui
+    depends_on:
+      kafka-1:
+        condition: service_healthy
+    ports:
+      - "8080:8080"
+    environment:
+      KAFKA_CLUSTERS_0_NAME: local-cluster
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka-1:19093,kafka-2:19093,kafka-3:19093
+      DYNAMIC_CONFIG_ENABLED: "true"
+
+volumes:
+  kafka-1-data:
+  kafka-2-data:
+  kafka-3-data:

@@ -1,0 +1,16 @@
+{
+  "type": "record",
+  "name": "OrderEvent",
+  "namespace": "dev.kafkalearn.avro",
+  "doc": "ЗАВЕДОМО НЕСОВМЕСТИМАЯ ВЕРСИЯ. ЭТАП 4, задача 3: Schema Registry должен её ОТКЛОНИТЬ при BACKWARD. Поле добавлено БЕЗ default, price сменил тип.",
+  "fields": [
+    { "name": "orderId",   "type": "string" },
+    { "name": "userId",    "type": "string" },
+    { "name": "product",   "type": "string" },
+    { "name": "quantity",  "type": "int" },
+    { "name": "price",     "type": "string" },
+    { "name": "status",    "type": { "type": "enum", "name": "Status", "symbols": ["CREATED","PAID","SHIPPED","CANCELLED"] } },
+    { "name": "createdAt", "type": { "type": "long", "logicalType": "timestamp-millis" } },
+    { "name": "warehouseId", "type": "string" }
+  ]
+}

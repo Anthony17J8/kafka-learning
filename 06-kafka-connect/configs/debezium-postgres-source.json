@@ -1,0 +1,41 @@
+{
+  "name": "postgres-source",
+  "config": {
+    "connector.class": "io.debezium.connector.postgresql.PostgresConnector",
+    "tasks.max": "1",
+
+    "database.hostname": "postgres",
+    "database.port": "5432",
+    "database.user": "kafka",
+    "database.password": "kafka",
+    "database.dbname": "shop",
+
+    "topic.prefix": "cdc",
+    "schema.include.list": "shop",
+    "table.include.list": "shop.orders,shop.customers",
+
+    "plugin.name": "pgoutput",
+    "slot.name": "debezium_slot",
+    "publication.autocreate.mode": "filtered",
+
+    "key.converter": "org.apache.kafka.connect.json.JsonConverter",
+    "value.converter": "org.apache.kafka.connect.json.JsonConverter",
+    "key.converter.schemas.enable": "false",
+    "value.converter.schemas.enable": "false",
+
+    "topic.creation.default.replication.factor": "3",
+    "topic.creation.default.partitions": "3",
+
+    "_комментарий": "ЭТАП 6, задача 4: добавьте SMT (маскирование поля, unwrap envelope)",
+    "transforms": "unwrap",
+    "transforms.unwrap.type": "io.debezium.transforms.ExtractNewRecordState",
+    "transforms.unwrap.drop.tombstones": "false",
+
+    "_комментарий_dlq": "ЭТАП 6, задача 5: настройте DLQ",
+    "errors.tolerance": "all",
+    "errors.deadletterqueue.topic.name": "dlq",
+    "errors.deadletterqueue.topic.replication.factor": "3",
+    "errors.deadletterqueue.context.headers.enable": "true",
+    "errors.log.enable": "true"
+  }
+}

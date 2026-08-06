@@ -1,0 +1,16 @@
+{
+  "type": "record",
+  "name": "OrderEvent",
+  "namespace": "dev.kafkalearn.avro",
+  "doc": "ВЕРСИЯ 2. Добавлено поле currency С DEFAULT -> BACKWARD-совместимо.",
+  "fields": [
+    { "name": "orderId",   "type": "string" },
+    { "name": "userId",    "type": "string" },
+    { "name": "product",   "type": "string" },
+    { "name": "quantity",  "type": "int" },
+    { "name": "price",     "type": "double" },
+    { "name": "status",    "type": { "type": "enum", "name": "Status", "symbols": ["CREATED","PAID","SHIPPED","CANCELLED"] } },
+    { "name": "createdAt", "type": { "type": "long", "logicalType": "timestamp-millis" } },
+    { "name": "currency",  "type": "string", "default": "EUR" }
+  ]
+}

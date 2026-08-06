@@ -1,0 +1,53 @@
+# Минимальная конфигурация JMX Prometheus Exporter для брокера Kafka.
+# Этап 9: расширяйте правила по мере надобности.
+lowercaseOutputName: true
+lowercaseOutputLabelNames: true
+
+rules:
+  # Общие метрики брокера: MessagesInPerSec, BytesInPerSec, BytesOutPerSec и т.д.
+  - pattern: kafka.server<type=(.+), name=(.+)PerSec\w*, topic=(.+)><>Count
+    name: kafka_server_$1_$2_total
+    labels:
+      topic: "$3"
+    type: COUNTER
+
+  - pattern: kafka.server<type=(.+), name=(.+)PerSec\w*><>Count
+    name: kafka_server_$1_$2_total
+    type: COUNTER
+
+  # Здоровье репликации: UnderReplicatedPartitions, OfflinePartitionsCount, ISR shrink/expand
+  - pattern: kafka.server<type=ReplicaManager, name=(.+)><>Value
+    name: kafka_server_replicamanager_$1
+    type: GAUGE
+
+  # KRaft-контроллер: ActiveControllerCount и пр.
+  - pattern: kafka.controller<type=(.+), name=(.+)><>Value
+    name: kafka_controller_$1_$2
+    type: GAUGE
+
+  - pattern: kafka.controller<type=(.+), name=(.+)><>Count
+    name: kafka_controller_$1_$2_total
+    type: COUNTER
+
+  # Латентность запросов по перцентилям
+  - pattern: kafka.network<type=RequestMetrics, name=(.+), request=(.+), version=(.+)><>(\d+)thPercentile
+    name: kafka_network_requestmetrics_$1
+    labels:
+      request: "$2"
+      quantile: "0.$4"
+    type: GAUGE
+
+  - pattern: kafka.log<type=LogFlushStats, name=LogFlushRateAndTimeMs><>Count
+    name: kafka_log_flush_total
+    type: COUNTER
+
+  # JVM
+  - pattern: 'java.lang<type=Memory><HeapMemoryUsage>(\w+)'
+    name: jvm_memory_heap_$1
+    type: GAUGE
+
+  - pattern: 'java.lang<type=GarbageCollector, name=(.+)><>CollectionCount'
+    name: jvm_gc_collection_total
+    labels:
+      gc: "$1"
+    type: COUNTER
