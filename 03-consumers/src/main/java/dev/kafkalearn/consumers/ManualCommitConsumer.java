@@ -24,16 +24,16 @@ import java.util.Properties;
 
 /**
  * ЭТАП 3, задачи 1, 2, 4: консьюмер с ручным коммитом и rebalance listener.
- *
+ * <p>
  * Запуск (несколько терминалов = несколько инстансов одной группы):
- *   mvn -pl 03-consumers -am compile
- *   mvn -pl 03-consumers exec:java -Dexec.mainClass=dev.kafkalearn.consumers.ManualCommitConsumer
- *
+ * mvn -pl 03-consumers -am compile
+ * mvn -pl 03-consumers exec:java -Dexec.mainClass=dev.kafkalearn.consumers.ManualCommitConsumer
+ * <p>
  * Что наблюдать:
- *  - запустите 1, 2, 3, 4 инстанса на топике с 3 партициями;
- *  - при 4-м инстансе один останется без партиций (партиций меньше, чем консьюмеров);
- *  - убейте один инстанс -> в логах увидите revoke/assign, то есть ребалансировку.
- *
+ * - запустите 1, 2, 3, 4 инстанса на топике с 3 партициями;
+ * - при 4-м инстансе один останется без партиций (партиций меньше, чем консьюмеров);
+ * - убейте один инстанс -> в логах увидите revoke/assign, то есть ребалансировку.
+ * <p>
  * Ключевая идея: коммитим ПОСЛЕ обработки => семантика at-least-once.
  * Обработка должна быть идемпотентной (см. этап 11).
  */
@@ -44,10 +44,10 @@ public class ManualCommitConsumer {
     private static final String GROUP_ID = "orders-manual-commit";
 
     public static void main(String[] args) {
-        Properties props = consumerProps(GROUP_ID);
+        Properties props = consumerProps();
 
         KafkaConsumer<String, OrderEvent> consumer = new KafkaConsumer<>(
-                props, new StringDeserializer(), JsonSerde.deserializer(OrderEvent.class));
+            props, new StringDeserializer(), JsonSerde.deserializer(OrderEvent.class));
 
         // Позиции, которые уже обработаны, но ещё не закоммичены
         Map<TopicPartition, OffsetAndMetadata> pending = new HashMap<>();
@@ -64,13 +64,19 @@ public class ManualCommitConsumer {
             }
         }));
 
+        String topic = System.getProperty("topic", TOPIC);
         try {
-            consumer.subscribe(List.of(TOPIC), new ConsumerRebalanceListener() {
+            consumer.subscribe(List.of(topic), new ConsumerRebalanceListener() {
+                private long revokeTime = -1L;
+                private long assignTime = -1L;
+
                 @Override
                 public void onPartitionsRevoked(Collection<TopicPartition> partitions) {
                     // Критично: коммитим до того, как потеряем партиции,
                     // иначе новый владелец перечитает уже обработанное.
                     log.warn("REVOKED: {}", partitions);
+                    revokeTime = System.currentTimeMillis();
+
                     if (!pending.isEmpty()) {
                         consumer.commitSync(pending);
                         pending.clear();
@@ -79,7 +85,12 @@ public class ManualCommitConsumer {
 
                 @Override
                 public void onPartitionsAssigned(Collection<TopicPartition> partitions) {
+                    assignTime = System.currentTimeMillis();
                     log.info("ASSIGNED: {}", partitions);
+                    if (revokeTime != -1L) {
+                        log.info("REASSIGN completed in {} ms", assignTime - revokeTime);
+                        revokeTime = -1L;
+                    }
                 }
 
                 @Override
@@ -87,6 +98,7 @@ public class ManualCommitConsumer {
                     // Партиции отобраны принудительно (например, вылет из группы).
                     // Коммитить уже нельзя - владелец сменился.
                     log.error("LOST: {}", partitions);
+                    revokeTime = -1L;
                     pending.clear();
                 }
             });
@@ -97,9 +109,9 @@ public class ManualCommitConsumer {
                 for (ConsumerRecord<String, OrderEvent> record : records) {
                     process(record);
                     pending.put(
-                            new TopicPartition(record.topic(), record.partition()),
-                            // Коммитим offset + 1: это позиция СЛЕДУЮЩЕЙ записи
-                            new OffsetAndMetadata(record.offset() + 1)
+                        new TopicPartition(record.topic(), record.partition()),
+                        // Коммитим offset + 1: это позиция СЛЕДУЮЩЕЙ записи
+                        new OffsetAndMetadata(record.offset() + 1)
                     );
                 }
 
@@ -130,15 +142,17 @@ public class ManualCommitConsumer {
     private static void process(ConsumerRecord<String, OrderEvent> record) {
         OrderEvent order = record.value();
         log.info("p={} off={} key={} order={} total={}",
-                record.partition(), record.offset(), record.key(),
-                order.orderId(), String.format("%.2f", order.total()));
+            record.partition(), record.offset(), record.key(),
+            order.orderId(), String.format("%.2f", order.total()));
         // TODO (этап 3, задача 7): добавьте sleep, чтобы превысить max.poll.interval.ms
         //  и увидеть, как консьюмера выкидывают из группы.
     }
 
-    static Properties consumerProps(String groupId) {
+    static Properties consumerProps() {
         Properties props = new Properties();
         props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, KafkaConfig.bootstrapServers());
+
+        String groupId = System.getProperty("group.id", GROUP_ID);
         props.put(ConsumerConfig.GROUP_ID_CONFIG, groupId);
 
         // Ручной коммит - основа контроля над семантикой доставки
@@ -147,12 +161,13 @@ public class ManualCommitConsumer {
 
         props.put(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, 100);
         props.put(ConsumerConfig.MAX_POLL_INTERVAL_MS_CONFIG, 300_000);
-        props.put(ConsumerConfig.SESSION_TIMEOUT_MS_CONFIG, 45_000);
-        props.put(ConsumerConfig.HEARTBEAT_INTERVAL_MS_CONFIG, 3_000);
 
-        // ЭТАП 3, задача 3: раскомментируйте, чтобы включить новый протокол
-        // ребалансировки (KIP-848, GA в Kafka 4.0) и сравнить поведение.
-        // props.put(ConsumerConfig.GROUP_PROTOCOL_CONFIG, "consumer");
+        String grProtocol = System.getProperty("group.protocol", "classic");
+        if ("classic".equals(grProtocol)) {
+            props.put(ConsumerConfig.SESSION_TIMEOUT_MS_CONFIG, 45_000);
+            props.put(ConsumerConfig.HEARTBEAT_INTERVAL_MS_CONFIG, 3_000);
+        }
+        props.put(ConsumerConfig.GROUP_PROTOCOL_CONFIG, grProtocol);
 
         return props;
     }

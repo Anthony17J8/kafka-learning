@@ -57,7 +57,7 @@ public class SeekingConsumer {
             log.info("Назначены партиции: {}", partitions);
 
             // Ищем оффсеты по времени
-            long targetTs = Instant.now().minus(LOOKBACK).toEpochMilli();
+            long targetTs = Instant.now().minus(Duration.ofDays(7)).toEpochMilli();
             Map<TopicPartition, Long> query = new HashMap<>();
             partitions.forEach(tp -> query.put(tp, targetTs));
 
