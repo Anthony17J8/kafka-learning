@@ -35,7 +35,7 @@ public class SimpleProducer {
 
     private static final Logger log = LoggerFactory.getLogger(SimpleProducer.class);
     private static final String TOPIC = KafkaConfig.topic("orders");
-    private static final int MESSAGES = 20;
+    private static final int MESSAGES = 100_000;
 
     public static void main(String[] args) throws Exception {
         Properties props = producerProps();

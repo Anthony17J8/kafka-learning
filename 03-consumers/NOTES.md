@@ -59,3 +59,30 @@ consumer-4 ASSIGNED: [order-0]
 | consumer (KIP-848) | 2 из 3 | — одна партиция читалась без перерыва |
 
 Замер revoke → assign включает ожидание poll() и потому несопоставим между протоколами.
+
+### Задача 7
+```js
+20:06:51.500 WARN  [consumer_background_thread] o.a.k.c.c.i.ConsumerHeartbeatRequestManager - [Consumer clientId=consumer-task71-1, groupId=task71] Time between subsequent calls to poll() was longer than the configured max.poll.interval.ms, exceeded approximately by 15032 ms. Member 4uzN8uR5SN2P4aq_Ah_n4Q will rejoin the group now.
+20:06:51.500 ERROR [dev.kafkalearn.consumers.ManualCommitConsumer.main()] d.k.c.ManualCommitConsumer - LOST: [orders-0, orders-1, orders-2]
+20:06:51.506 ERROR [consumer_background_thread] o.a.k.c.c.i.CommitRequestManager - [Consumer clientId=consumer-task71-1, groupId=task71] Unexpected error handling response for OffsetCommit request for offsets {}
+java.lang.NullPointerException: Cannot invoke "org.apache.kafka.clients.consumer.OffsetAndMetadata.offset()" because "offsetAndMetadata" is null
+	at org.apache.kafka.clients.consumer.internals.CommitRequestManager$OffsetCommitRequestState.onResponse(CommitRequestManager.java:755)
+	at org.apache.kafka.clients.consumer.internals.CommitRequestManager$RetriableRequestState.handleClientResponse(CommitRequestManager.java:909)
+	at org.apache.kafka.clients.consumer.internals.CommitRequestManager$RetriableRequestState.lambda$buildRequestWithResponseHandling$0(CommitRequestManager.java:899)
+	at java.base/java.util.concurrent.CompletableFuture.uniWhenComplete(CompletableFuture.java:863)
+	at java.base/java.util.concurrent.CompletableFuture$UniWhenComplete.tryFire(CompletableFuture.java:841)
+	at java.base/java.util.concurrent.CompletableFuture.postComplete(CompletableFuture.java:510)
+	at java.base/java.util.concurrent.CompletableFuture.complete(CompletableFuture.java:2147)
+	at org.apache.kafka.clients.consumer.internals.NetworkClientDelegate$FutureCompletionHandler.onComplete(NetworkClientDelegate.java:433)
+	at org.apache.kafka.clients.ClientResponse.onComplete(ClientResponse.java:154)
+	at org.apache.kafka.clients.NetworkClient.completeResponses(NetworkClient.java:669)
+	at org.apache.kafka.clients.NetworkClient.poll(NetworkClient.java:661)
+	at org.apache.kafka.clients.consumer.internals.NetworkClientDelegate.poll(NetworkClientDelegate.java:153)
+	at org.apache.kafka.clients.consumer.internals.ConsumerNetworkThread.runOnce(ConsumerNetworkThread.java:162)
+	at org.apache.kafka.clients.consumer.internals.ConsumerNetworkThread.run(ConsumerNetworkThread.java:106)
+20:06:52.002 WARN  [dev.kafkalearn.consumers.ManualCommitConsumer.main()] d.k.c.ManualCommitConsumer - Асинхронный коммит не удался: Cannot invoke "org.apache.kafka.clients.consumer.OffsetAndMetadata.offset()" because "offsetAndMetadata" is null
+```
+По логам видно, что timeout между вызовами poll был превышен (``max.poll.interval.ms``). Консьюмер теряет свои партиции, 
+которые были ему назначены. При последующем вызове poll консьюмер шлет joinGroup координатору и ему снова назначаются партиции. 
+И так по кругу. Почему сработал LOST а не REVOKED? В случае с LOST commit не имеет смысл, т.к. коммит может затереть 
+offset после обработки новым владельцем партиции. 

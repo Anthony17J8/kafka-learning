@@ -144,8 +144,12 @@ public class ManualCommitConsumer {
         log.info("p={} off={} key={} order={} total={}",
             record.partition(), record.offset(), record.key(),
             order.orderId(), String.format("%.2f", order.total()));
-        // TODO (этап 3, задача 7): добавьте sleep, чтобы превысить max.poll.interval.ms
-        //  и увидеть, как консьюмера выкидывают из группы.
+        try {
+            Thread.sleep(200);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new RuntimeException(e);
+        }
     }
 
     static Properties consumerProps() {
@@ -160,7 +164,7 @@ public class ManualCommitConsumer {
         props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
 
         props.put(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, 100);
-        props.put(ConsumerConfig.MAX_POLL_INTERVAL_MS_CONFIG, 300_000);
+        props.put(ConsumerConfig.MAX_POLL_INTERVAL_MS_CONFIG,  5_000);
 
         String grProtocol = System.getProperty("group.protocol", "classic");
         if ("classic".equals(grProtocol)) {
