@@ -29,4 +29,4 @@ if [[ " $* " != *" --bootstrap-server "* ]]; then
   set -- --bootstrap-server "$BOOTSTRAP" "$@"
 fi
 
-exec docker exec -i "$KAFKA_CONTAINER" "/opt/kafka/bin/${CMD}" "$@"
+exec docker exec -i -e KAFKA_OPTS= "$KAFKA_CONTAINER" "/opt/kafka/bin/${CMD}" "$@"

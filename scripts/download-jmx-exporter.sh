@@ -3,7 +3,7 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
-VERSION="${JMX_EXPORTER_VERSION:-1.1.0}"
+VERSION="${JMX_EXPORTER_VERSION:-1.0.1}"
 TARGET="docker/jmx-exporter/jmx_prometheus_javaagent.jar"
 URL="https://repo1.maven.org/maven2/io/prometheus/jmx/jmx_prometheus_javaagent/${VERSION}/jmx_prometheus_javaagent-${VERSION}.jar"
 

@@ -36,7 +36,7 @@ x-kafka-common: &kafka-common
     # JMX-агент Prometheus навешивается через KAFKA_OPTS (см. jmx-exporter/)
     KAFKA_OPTS: "-javaagent:/opt/jmx-exporter/jmx_prometheus_javaagent.jar=7071:/opt/jmx-exporter/kafka-broker.yml"
   healthcheck:
-    test: ["CMD-SHELL", "/opt/kafka/bin/kafka-broker-api-versions.sh --bootstrap-server localhost:9092 >/dev/null 2>&1"]
+    test: ["CMD-SHELL", "KAFKA_OPTS='' /opt/kafka/bin/kafka-broker-api-versions.sh --bootstrap-server localhost:9092 >/dev/null 2>&1"]
     interval: 10s
     timeout: 10s
     retries: 15
