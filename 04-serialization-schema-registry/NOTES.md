@@ -23,3 +23,17 @@ docker exec -it schema-registry kafka-avro-console-consumer --bootstrap-server k
 - скомпилировали консьюмер на новой схеме
 - в результате при чтении консьюмером данных записанных при старой схеме, получаем корректный результат, в качестве
   значения для нового поля указано defaul-значение
+
+### Задача 4
+
+При использовании несовместимой версии схемы:
+```json
+{
+  "error_code": 409,
+  "message": "Schema being registered is incompatible with an earlier schema for subject \"orders-avro-value\", details: [{errorType:'TYPE_MISMATCH', description:'The type (path '/fields/4/type') of a field in the new schema does not match with the old schema', additionalInfo:'reader type: STRING not compatible with writer type: DOUBLE'}, {errorType:'READER_FIELD_MISSING_DEFAULT_VALUE', description:'The field 'warehouseId' at path '/fields/7' in the new schema has no default value and is missing in the old schema', additionalInfo:'warehouseId'}, {oldSchemaVersion: 4}, {oldSchema: '{\"type\":\"record\",\"name\":\"OrderEvent\",\"namespace\":\"dev.kafkalearn.avro\",\"doc\":\"ВЕРСИЯ 2. Добавлено поле currency С DEFAULT -> BACKWARD-совместимо.\",\"fields\":[{\"name\":\"orderId\",\"type\":{\"type\":\"string\",\"avro.java.string\":\"String\"}},{\"name\":\"userId\",\"type\":{\"type\":\"string\",\"avro.java.string\":\"String\"}},{\"name\":\"product\",\"type\":{\"type\":\"string\",\"avro.java.string\":\"String\"}},{\"name\":\"quantity\",\"type\":\"int\"},{\"name\":\"price\",\"type\":\"double\"},{\"name\":\"status\",\"type\":{\"type\":\"enum\",\"name\":\"Status\",\"symbols\":[\"CREATED\",\"PAID\",\"SHIPPED\",\"CANCELLED\"]}},{\"name\":\"createdAt\",\"type\":{\"type\":\"long\",\"logicalType\":\"timestamp-millis\"}},{\"name\":\"currency\",\"type\":{\"type\":\"string\",\"avro.java.string\":\"String\"},\"default\":\"EUR\"}]}'}, {validateFields: 'false', compatibility: 'BACKWARD'}]"
+}
+```
+**Проблема 1:** изменение несовместимого типа данных (double -> String)  
+**Проблема 2:** добавление нового поля без указания default-значения  
+**Проверка совместимости — это симуляция чтения старых данных новой схемой**
+
