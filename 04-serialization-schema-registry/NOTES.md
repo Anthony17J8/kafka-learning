@@ -37,3 +37,208 @@ docker exec -it schema-registry kafka-avro-console-consumer --bootstrap-server k
 **Проблема 2:** добавление нового поля без указания default-значения  
 **Проверка совместимости — это симуляция чтения старых данных новой схемой**
 
+### Задача 6
+```json
+{
+  "brokers": [
+    {
+      "broker": 1,
+      "logDirs": [
+        {
+          "partitions": [
+            {
+              "partition": "orders-avro-0",
+              "size": 1045,
+              "offsetLag": 0,
+              "isFuture": false
+            },
+            {
+              "partition": "orders-json-2",
+              "size": 909,
+              "offsetLag": 0,
+              "isFuture": false
+            },
+            {
+              "partition": "orders-avro-1",
+              "size": 1052,
+              "offsetLag": 0,
+              "isFuture": false
+            },
+            {
+              "partition": "orders-avro-2",
+              "size": 553,
+              "offsetLag": 0,
+              "isFuture": false
+            },
+            {
+              "partition": "orders-proto-2",
+              "size": 561,
+              "offsetLag": 0,
+              "isFuture": false
+            },
+            {
+              "partition": "orders-proto-1",
+              "size": 1127,
+              "offsetLag": 0,
+              "isFuture": false
+            },
+            {
+              "partition": "orders-proto-0",
+              "size": 1061,
+              "offsetLag": 0,
+              "isFuture": false
+            },
+            {
+              "partition": "orders-json-0",
+              "size": 1757,
+              "offsetLag": 0,
+              "isFuture": false
+            },
+            {
+              "partition": "orders-json-1",
+              "size": 1818,
+              "offsetLag": 0,
+              "isFuture": false
+            }
+          ],
+          "error": null,
+          "logDir": "/var/lib/kafka/data"
+        }
+      ]
+    },
+    {
+      "broker": 2,
+      "logDirs": [
+        {
+          "partitions": [
+            {
+              "partition": "orders-avro-0",
+              "size": 1045,
+              "offsetLag": 0,
+              "isFuture": false
+            },
+            {
+              "partition": "orders-json-2",
+              "size": 909,
+              "offsetLag": 0,
+              "isFuture": false
+            },
+            {
+              "partition": "orders-avro-1",
+              "size": 1052,
+              "offsetLag": 0,
+              "isFuture": false
+            },
+            {
+              "partition": "orders-avro-2",
+              "size": 553,
+              "offsetLag": 0,
+              "isFuture": false
+            },
+            {
+              "partition": "orders-proto-2",
+              "size": 561,
+              "offsetLag": 0,
+              "isFuture": false
+            },
+            {
+              "partition": "orders-proto-1",
+              "size": 1127,
+              "offsetLag": 0,
+              "isFuture": false
+            },
+            {
+              "partition": "orders-proto-0",
+              "size": 1061,
+              "offsetLag": 0,
+              "isFuture": false
+            },
+            {
+              "partition": "orders-json-0",
+              "size": 1757,
+              "offsetLag": 0,
+              "isFuture": false
+            },
+            {
+              "partition": "orders-json-1",
+              "size": 1818,
+              "offsetLag": 0,
+              "isFuture": false
+            }
+          ],
+          "error": null,
+          "logDir": "/var/lib/kafka/data"
+        }
+      ]
+    },
+    {
+      "broker": 3,
+      "logDirs": [
+        {
+          "partitions": [
+            {
+              "partition": "orders-avro-0",
+              "size": 1045,
+              "offsetLag": 0,
+              "isFuture": false
+            },
+            {
+              "partition": "orders-json-2",
+              "size": 909,
+              "offsetLag": 0,
+              "isFuture": false
+            },
+            {
+              "partition": "orders-avro-1",
+              "size": 1052,
+              "offsetLag": 0,
+              "isFuture": false
+            },
+            {
+              "partition": "orders-avro-2",
+              "size": 553,
+              "offsetLag": 0,
+              "isFuture": false
+            },
+            {
+              "partition": "orders-proto-2",
+              "size": 561,
+              "offsetLag": 0,
+              "isFuture": false
+            },
+            {
+              "partition": "orders-proto-1",
+              "size": 1127,
+              "offsetLag": 0,
+              "isFuture": false
+            },
+            {
+              "partition": "orders-proto-0",
+              "size": 1061,
+              "offsetLag": 0,
+              "isFuture": false
+            },
+            {
+              "partition": "orders-json-0",
+              "size": 1757,
+              "offsetLag": 0,
+              "isFuture": false
+            },
+            {
+              "partition": "orders-json-1",
+              "size": 1818,
+              "offsetLag": 0,
+              "isFuture": false
+            }
+          ],
+          "error": null,
+          "logDir": "/var/lib/kafka/data"
+        }
+      ]
+    }
+  ],
+  "version": 1
+}
+
+```
+

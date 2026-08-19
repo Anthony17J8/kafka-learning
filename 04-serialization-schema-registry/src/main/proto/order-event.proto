@@ -1,0 +1,23 @@
+syntax = "proto3";
+
+package dev.kafkalearn.proto;
+
+option java_package = "dev.kafkalearn.proto";
+option java_outer_classname = "OrderEventProto";
+
+message OrderEvent {
+    string order_id = 1;
+    string user_id = 2;
+    string product = 3;
+    int32 quantity = 4;
+    double price = 5;
+    Status status = 6;
+    int64 created_at = 7;
+}
+
+enum Status {
+    CREATED = 0;
+    PAID = 1;
+    SHIPPED = 2;
+    CANCELLED = 3;
+}
