@@ -9,7 +9,7 @@
     { "name": "product",   "type": ["null", "string"], "default": null },
     { "name": "quantity",  "type": "int" },
     { "name": "price",     "type": "double" },
-    { "name": "status",    "type": { "type": "enum", "name": "Status", "symbols": ["CREATED","PAID","SHIPPED","CANCELLED"] } },
+    { "name": "status",    "type": { "type": "enum", "name": "Status", "symbols": ["CREATED","PAID","SHIPPED","CANCELLED", "POSTPONED"] } },
     { "name": "createdAt", "type": { "type": "long", "logicalType": "timestamp-millis" } },
     { "name": "currency",  "type": "string", "default": "EUR" }
   ]

@@ -2,15 +2,15 @@
   "type": "record",
   "name": "OrderEvent",
   "namespace": "dev.kafkalearn.avro",
-  "doc": "Событие заказа. ЭТАП 4: эволюционируйте эту схему и проверяйте совместимость!",
+  "doc": "ВЕРСИЯ 2. Добавлено поле currency С DEFAULT -> BACKWARD-совместимо.",
   "fields": [
     { "name": "orderId",   "type": "string" },
-    { "name": "product",   "type": ["null", "string"] },
-    { "name": "userId",    "type": "string" },
-    { "name": "quantity",  "type": "long" },
+    { "name": "clientId",    "type": "string", "aliases": ["userId"] },
+    { "name": "product",   "type": ["null", "string"], "default": null },
+    { "name": "quantity",  "type": "int" },
     { "name": "price",     "type": "double" },
     { "name": "status",    "type": { "type": "enum", "name": "Status", "symbols": ["CREATED","PAID","SHIPPED","CANCELLED"] } },
     { "name": "createdAt", "type": { "type": "long", "logicalType": "timestamp-millis" } },
-    { "name": "category",  "type": "string", "default": "unknown"}
+    { "name": "currency",  "type": "string", "default": "EUR" }
   ]
 }

@@ -2,7 +2,7 @@ package dev.kafkalearn.producer;
 
 import dev.kafkalearn.common.KafkaConfig;
 import dev.kafkalearn.common.OrderEvent;
-import io.confluent.kafka.serializers.KafkaJsonSerializer;
+import io.confluent.kafka.serializers.json.KafkaJsonSchemaSerializer;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.clients.producer.ProducerRecord;
@@ -54,7 +54,7 @@ public class JsonProducer {
         props.put(ProducerConfig.CLIENT_ID_CONFIG, "json-producer");
         props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, KafkaConfig.bootstrapServers());
         props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
-        props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, KafkaJsonSerializer.class);
+        props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, KafkaJsonSchemaSerializer.class);
         props.put("schema.registry.url", "http://localhost:8081");
         props.put("auto.register.schemas", true);
         props.put("json.schema.spec.version", "draft_7");
